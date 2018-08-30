@@ -1,0 +1,28 @@
+div {
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+.action-link {
+    &:hover {
+        background: #f0deb7;
+    }
+}
+
+.street-view {
+    background-color: antiquewhite;
+}
+
+.people-homes {
+    border: 1px solid gray;
+    border-radius: 4px;
+
+    .single-home {
+        border: 2px solid black;
+        border-radius: 4px;
+
+        &:hover {
+            background: orchid;
+        }
+    }
+}

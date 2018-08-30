@@ -1,0 +1,19 @@
+.breadcrumb {
+    display: flex;
+
+    &.simple {
+        border: 2px solid blueviolet;
+        border-radius: 4px;
+    }
+
+    &.advanced {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        border: 2px solid orange;
+        border-radius: 4px;
+    }
+
+    .breadcrumb-separator {
+        margin: 10px;
+    }
+}

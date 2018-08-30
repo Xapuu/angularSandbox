@@ -1,0 +1,40 @@
+<app-breadcrumb></app-breadcrumb>
+<div class="street-view">
+	<div>
+		<div class="action-link"
+		     [routerLink]="['/']">See what's happening outside</div>
+	</div>
+	<div>
+		<div class="action-link"
+		     [routerLink]="['home']">Home</div>
+		<div>
+			<div class="action-link"
+			     [routerLink]="['home','primaryHouse']">PrimaryHouse</div>
+			<div>
+				<div class="action-link"
+				     [routerLink]="['home','primaryHouse', 'kitchen']">Kitchen</div>
+				<div class="action-link"
+				     [routerLink]="['home','primaryHouse', 'bedroom']">Bedroom</div>
+			</div>
+		</div>
+		<div>
+			<div class="action-link"
+			     [routerLink]="['home','guestHouse']">Back yard</div>
+		</div>
+	</div>
+	<div class="people-homes">
+		<div style="color:red">Invade other people homes</div>
+		<div>
+			<div class="single-home"
+			     (click)="breakIn('Pesho')">Pesho's home</div>
+			<div class="single-home"
+			     (click)="breakIn('Gosho')">Gosho's home</div>
+			<div class="single-home"
+			     (click)="breakIn('Ivan')">Ivan's home</div>
+			<div class="single-home"
+			     (click)="resetbreakIn()">Reset break in history</div>
+		</div>
+	</div>
+</div>
+
+<router-outlet></router-outlet>
