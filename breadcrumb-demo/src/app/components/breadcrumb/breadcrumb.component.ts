@@ -1,14 +1,25 @@
-import {
-	Component,
-	OnInit
-} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
 	Router,
-	ActivationStart,
-	ActivatedRouteSnapshot,
-	ActivationEnd
+	Event,
+	ActivationEnd,
+	NavigationEnd
 } from '@angular/router';
-import { filter, map, debounceTime } from 'rxjs/operators';
+import {
+	filter,
+	map,
+	buffer,
+	pluck
+} from 'rxjs/operators';
+
+/**
+ * Check if an angular router 'Event' is instance of 'NavigationEnd' event
+ */
+const isNavigationEnd = (ev: Event) => ev instanceof NavigationEnd;
+/**
+ * Check if an angular router 'Event' is instance of 'NavigationEnd' event
+ */
+const isActivationEnd = (ev: Event) => ev instanceof ActivationEnd;
 
 @Component({
 	selector: 'app-breadcrumb',
@@ -16,54 +27,56 @@ import { filter, map, debounceTime } from 'rxjs/operators';
 	styleUrls: ['./breadcrumb.component.scss']
 })
 export class BreadcrumbComponent implements OnInit {
-
 	bcLoadedData;
 	bcForDisplay;
 
 	constructor(private router: Router) { }
 
 	ngOnInit() {
+		/**
+		 * navigationEnd$ is triggered once per completed routing event, in other words
+		 * once per loading a component that is in the end of the current route
+		 */
+		const navigationEnd$ = this.router.events.pipe(filter(isNavigationEnd));
 
 		/**
-		 * First we subscribe to all navigation events, in order to update
+		 * Here we subscribe to all navigation events, in order to update
 		 * our route "data", which we will use for the breadcrumb visualization.
 		 *
-		 * We also filter the events emitted from the `router` in such way, that we are only
+		 * Than we filter the events emitted from the `router` in such way, that we are only
 		 * taking action upon a completed router event (in other words we are subscribing only for `ActivationEnd`
 		 * events)
 		 *
-		 * The `debounceTime` is used as a workaround, in order to skip all `ActivationEnd` events emitted before the
-		 * last one (The router is emitting an router event for each nested route, see line 46)
+		 * We use pluck to get only the required breadcrumb data
 		 *
-		 * In the end of the pipe we are mapping the emitted values to `snapshot`-s, so that we can retrieve the breadcrumb data
-		 * in easier manner,
+		 * The buffer operator accumulates all `data` coming from the router and emits the accumulated data once
+		 * when a `NavigationEnd` event passes trough `navigationEnd$`
+		 *
+		 * The `map` in the end is used to reverse the collected data, in order to convert it to more logical
+		 * sequence. Without the revers first we will get the data for the current route, after that for it's parent
+		 * and so on (that is how the ng router works).
 		 */
-
 		this.router.events
 			.pipe(
-				filter(x => (x instanceof ActivationEnd)),
-				// tap(x => console.log(x)),     // Remove the comment to see the effect without debounce time
-				debounceTime(1),
-				map((x: ActivationStart) => x.snapshot)
+				filter(isActivationEnd),
+				pluck('snapshot'),
+				pluck('data'),
+				buffer(navigationEnd$),
+				map((bcData: any[]) => bcData.reverse())
 			)
 			.subscribe(x => {
-				this.bcLoadedData = this.getChildrenBcDate(x.root).filter(d => d.bc);
+				this.bcLoadedData = x;
+
 				this.bcForDisplay = this.bcLoadedData.reduce((rootAcc, rootElement) => {
 					let breakIn = [];
 					if (rootElement.breakIn) {
-						breakIn = rootElement.breakIn.reduce((acc, e) => [...acc, `break in ${e}'s home`], []);
+						breakIn = rootElement.breakIn.reduce(
+							(acc, e) => [...acc, `break in ${e}'s home`],
+							[]
+						);
 					}
 					return [...rootAcc, rootElement.bc, ...breakIn];
 				}, []);
 			});
-	}
-
-	getChildrenBcDate(x: ActivatedRouteSnapshot) {
-		let bcData = [x.data];
-
-		if (x.firstChild !== null) {
-			bcData = [...bcData, ...this.getChildrenBcDate(x.firstChild)];
-		}
-		return bcData;
 	}
 }
